@@ -1,3 +1,201 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --color-canvas: #080b12;
+  --color-panel: #111827;
+  --color-accent: #67e8f9;
+  --color-text-muted: #94a3b8;
+  --motion-fast: 140ms;
+  --motion-base: 220ms;
+}
+
+html,
+body {
+  min-height: 100%;
+  background: var(--color-canvas);
+}
+
+button,
+a,
+input {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.security-toolbar {
+  position: relative;
+  z-index: 20;
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
+  background: rgb(8 11 18 / 94%);
+}
+
+.security-toolbar__inner {
+  display: flex;
+  min-height: 52px;
+  max-width: 1152px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 auto;
+  padding: 8px 24px;
+}
+
+.confidential-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgb(103 232 249 / 22%);
+  border-radius: 999px;
+  background: rgb(103 232 249 / 8%);
+  padding: 6px 10px;
+  color: #a5f3fc;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.confidential-badge svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+.security-toolbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.security-link,
+.panic-button {
+  border: 0;
+  background: transparent;
+  color: #cbd5e1;
+  font-size: 12px;
+  transition: color var(--motion-fast) ease, background var(--motion-fast) ease;
+}
+
+.security-link:hover {
+  color: white;
+}
+
+.panic-button {
+  border: 1px solid rgb(251 113 133 / 28%);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #fda4af;
+}
+
+.panic-button:hover {
+  background: rgb(251 113 133 / 10%);
+  color: #fecdd3;
+}
+
+.security-error {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 0 24px 10px;
+  color: #fda4af;
+  font-size: 12px;
+}
+
+.security-dialog-backdrop {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 72%);
+  padding: 20px;
+}
+
+.security-dialog {
+  width: min(100%, 520px);
+  max-height: min(80vh, 620px);
+  overflow: auto;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 20px;
+  background: #101722;
+  padding: 24px;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 45%);
+}
+
+.security-dialog__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.security-dialog__heading h2 {
+  margin-top: 4px;
+  color: white;
+  font-size: 20px;
+  font-weight: 650;
+}
+
+.security-dialog__heading button {
+  color: #94a3b8;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.eyebrow {
+  color: #67e8f9;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.security-dialog__note,
+.audit-empty {
+  margin-top: 16px;
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.audit-list {
+  margin-top: 20px;
+}
+
+.audit-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid rgb(255 255 255 / 8%);
+  padding: 13px 0;
+  color: #e2e8f0;
+  font-size: 13px;
+}
+
+.audit-list time {
+  flex-shrink: 0;
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+@media (max-width: 520px) {
+  .security-toolbar__inner {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .security-toolbar__actions {
+    gap: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

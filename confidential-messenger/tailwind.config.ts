@@ -5,7 +5,10 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: '#0B0B0F',
+        background: 'var(--color-canvas)',
+        panel: 'var(--color-panel)',
+        accent: 'var(--color-accent)',
+        muted: 'var(--color-text-muted)',
       },
     },
   },
