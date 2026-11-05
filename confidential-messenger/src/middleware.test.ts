@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createContentSecurityPolicy } from '../middleware';
+import { createContentSecurityPolicy } from './middleware';
 
 describe('content security policy', () => {
   it('requires a per-request nonce for scripts and blocks unsafe production scripts', () => {
