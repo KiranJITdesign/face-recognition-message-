@@ -1,6 +1,6 @@
 import sodium from 'libsodium-wrappers';
 import { WrappedKey, KeyPair } from '@/types';
-import { generateSalt, generateNonce, secureWipe } from './utils';
+import { generateSalt, generateNonce, secureWipe, trackSensitiveBuffer } from './utils';
 import { generateX25519KeyPair } from './keyPair';
 
 export async function wrapPrivateKey(
@@ -15,12 +15,13 @@ export async function wrapPrivateKey(
   
   const actualSalt = salt || generateSalt();
   const derivedKey = sodium.crypto_generichash(32, actualSalt, wrappingKey);
-  const nonce = generateNonce(sodium.crypto_secretbox_NONCEBYTES);
-  const wrapped = sodium.crypto_secretbox_easy(privateKey, nonce, derivedKey);
-  
-  secureWipe(derivedKey);
-  
-  return { wrapped, nonce, salt: actualSalt };
+  try {
+    const nonce = generateNonce(sodium.crypto_secretbox_NONCEBYTES);
+    const wrapped = sodium.crypto_secretbox_easy(privateKey, nonce, derivedKey);
+    return { wrapped, nonce, salt: actualSalt };
+  } finally {
+    secureWipe(derivedKey);
+  }
 }
 
 export async function unwrapPrivateKey(
@@ -33,19 +34,17 @@ export async function unwrapPrivateKey(
   }
   
   const derivedKey = sodium.crypto_generichash(32, wrappedKey.salt, wrappingKey);
-  const privateKey = sodium.crypto_secretbox_open_easy(
-    wrappedKey.wrapped,
-    wrappedKey.nonce,
-    derivedKey
-  );
-  
-  secureWipe(derivedKey);
-  
-  if (!privateKey) {
-    throw new Error('Failed to unwrap private key: decryption failed');
+  try {
+    const privateKey = sodium.crypto_secretbox_open_easy(
+      wrappedKey.wrapped,
+      wrappedKey.nonce,
+      derivedKey
+    );
+    if (!privateKey) throw new Error('Failed to unwrap private key: decryption failed');
+    return trackSensitiveBuffer(privateKey);
+  } finally {
+    secureWipe(derivedKey);
   }
-  
-  return privateKey;
 }
 
 export async function deriveWrappingKeyFromPRF(
@@ -89,12 +88,16 @@ export async function generateWrappingKeyFromPassphrase(
     throw new Error('Passphrase salt has an invalid length');
   }
   const encoded = new TextEncoder().encode(passphrase);
-  return sodium.crypto_pwhash(
-    32,
-    encoded,
-    salt,
-    sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
-    sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
-    sodium.crypto_pwhash_ALG_ARGON2ID13
-  );
+  try {
+    return trackSensitiveBuffer(sodium.crypto_pwhash(
+      32,
+      encoded,
+      salt,
+      sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
+      sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
+      sodium.crypto_pwhash_ALG_ARGON2ID13
+    ));
+  } finally {
+    secureWipe(encoded);
+  }
 }

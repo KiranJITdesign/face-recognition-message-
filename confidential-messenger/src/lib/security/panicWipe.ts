@@ -4,10 +4,18 @@ export async function panicWipe(): Promise<void> {
   if (typeof window === 'undefined') throw new Error('Panic wipe requires a browser');
 
   wipeSensitiveBuffers();
-  window.localStorage.clear();
-  window.sessionStorage.clear();
-
+  const failures: unknown[] = [];
   const cleanupTasks: Promise<unknown>[] = [];
+  try {
+    window.localStorage.clear();
+  } catch (error) {
+    failures.push(error);
+  }
+  try {
+    window.sessionStorage.clear();
+  } catch (error) {
+    failures.push(error);
+  }
   if ('caches' in window) {
     cleanupTasks.push(
       window.caches.keys().then(keys => Promise.all(keys.map(key => window.caches.delete(key))))
@@ -36,9 +44,11 @@ export async function panicWipe(): Promise<void> {
   }
 
   const results = await Promise.allSettled(cleanupTasks);
-  const failures = results
-    .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
-    .map(result => result.reason);
+  failures.push(
+    ...results
+      .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+      .map(result => result.reason)
+  );
   if (failures.length > 0) {
     throw new AggregateError(failures, 'Some browser data could not be removed');
   }

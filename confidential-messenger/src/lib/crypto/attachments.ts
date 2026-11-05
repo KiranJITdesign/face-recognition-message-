@@ -264,5 +264,5 @@ export async function decryptFileKey(
   wrappingKey: Uint8Array
 ): Promise<Uint8Array> {
   await sodium.ready;
-  return sodium.crypto_secretbox_open_easy(wrapped, nonce, wrappingKey);
+  return trackSensitiveBuffer(sodium.crypto_secretbox_open_easy(wrapped, nonce, wrappingKey));
 }

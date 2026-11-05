@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   decryptFile,
   decryptFileKey,
+  computeFileHash,
   encryptFile,
   encryptFileKey,
   generateFileKey,
@@ -21,9 +22,11 @@ describe('encrypted attachments', () => {
     const file = asFile(bytes);
     const key = await generateFileKey();
     const { encrypted, hash } = await encryptFile(file, key);
+    const decrypted = await decryptFile(encrypted, key);
 
-    expect(await decryptFile(encrypted, key)).toEqual(bytes);
-    expect(hash).toMatch(/^[A-Za-z0-9_-]+$/);
+    expect(decrypted).toEqual(bytes);
+    expect(hash).toBe(await computeFileHash(file));
+    secureWipe(decrypted);
     secureWipe(key);
   });
 
@@ -31,7 +34,9 @@ describe('encrypted attachments', () => {
     const key = await generateFileKey();
     const { encrypted } = await encryptFile(asFile(new Uint8Array()), key);
 
-    expect(await decryptFile(encrypted, key)).toHaveLength(0);
+    const decrypted = await decryptFile(encrypted, key);
+    expect(decrypted).toHaveLength(0);
+    secureWipe(decrypted);
     secureWipe(key);
   });
 
@@ -65,7 +70,9 @@ describe('encrypted attachments', () => {
     const wrongWrappingKey = await generateFileKey();
     const wrapped = await encryptFileKey(fileKey, wrappingKey);
 
-    expect(await decryptFileKey(wrapped.wrapped, wrapped.nonce, wrappingKey)).toEqual(fileKey);
+    const decryptedKey = await decryptFileKey(wrapped.wrapped, wrapped.nonce, wrappingKey);
+    expect(decryptedKey).toEqual(fileKey);
+    secureWipe(decryptedKey);
     await expect(decryptFileKey(wrapped.wrapped, wrapped.nonce, wrongWrappingKey)).rejects.toThrow();
     secureWipe(fileKey);
     secureWipe(wrappingKey);
@@ -77,8 +84,10 @@ describe('encrypted attachments', () => {
     const wrappingKey = await generateFileKey();
     const wrapped = await wrapPrivateKey(privateKey, wrappingKey);
 
-    expect(await unwrapPrivateKey(wrapped, wrappingKey)).toEqual(privateKey);
+    const unwrappedKey = await unwrapPrivateKey(wrapped, wrappingKey);
+    expect(unwrappedKey).toEqual(privateKey);
     await expect(deriveKey(new Uint8Array(32), 'short')).rejects.toThrow(/exactly 8 bytes/);
+    secureWipe(unwrappedKey);
     secureWipe(wrappingKey);
   });
 
